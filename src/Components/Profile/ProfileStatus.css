@@ -1,0 +1,20 @@
+.profile-status {
+    text-align: center;
+    margin-top: 20px;
+  }
+  
+  .complete-profile-btn {
+    background-color: #007bff; /* Bootstrap primary color for example */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 10px;
+  }
+  
+  .complete-profile-btn:hover {
+    background-color: #0056b3; /* Darker shade for hover effect */
+  }
+  
