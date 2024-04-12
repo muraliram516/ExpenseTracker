@@ -1,15 +1,33 @@
-import React, { useState } from 'react';
-import { updateProfile } from './firebaseService'; // Import your Firebase service functions
+import React, { useState, useEffect } from 'react';
+import { getProfile, updateProfile } from './firebaseService'; // Import Firebase helper functions
 
-function CompleteProfile() {
+function CompleteProfile({ userId }) {
   const [fullName, setFullName] = useState('');
   const [profilePhotoUrl, setProfilePhotoUrl] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Function to fetch data when the component mounts
+    const fetchProfileData = async () => {
+      try {
+        const profileData = await getProfile(userId);
+        if (profileData) {
+          setFullName(profileData.fullName || '');
+          setProfilePhotoUrl(profileData.profilePhotoUrl || '');
+        }
+      } catch (error) {
+        console.error('Error fetching profile data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProfileData();
+  }, [userId]);
 
   const handleUpdateClick = async () => {
     try {
-      // This is where you call your Firebase function to update the profile
-      // You would need to create this updateProfile function in your Firebase service file
-      await updateProfile({ fullName, profilePhotoUrl });
+      await updateProfile(userId, { fullName, profilePhotoUrl });
       alert('Profile updated successfully!');
     } catch (error) {
       console.error('Error updating profile:', error);
@@ -17,11 +35,14 @@ function CompleteProfile() {
     }
   };
 
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <div>
       <p>Your Profile is 64% completed. A complete Profile has higher chances of landing a job.</p>
       <div>
-        <p>Contact Details</p>
         <label>
           Full Name:
           <input 
