@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { auth } from '../../firebase'; 
 import './LoginForm.css'; 
 
-const LoginForm = () => {
+const LoginForm = ({ onLogin }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -13,6 +13,7 @@ const LoginForm = () => {
       const userCredential = await auth.signInWithEmailAndPassword(email, password);
       const token = await userCredential.user.getIdToken();
       console.log(token); // Store the token from Firebase as needed
+      onLogin(); // Call the onLogin function to update the Redux state
     } catch (error) {
       setError(error.message);
       alert(error.message); // Alert the user to the error
@@ -46,5 +47,6 @@ const LoginForm = () => {
       {error && <div className="error-message">{error}</div>}
     </div>
   );
-}
+};
+
 export default LoginForm;
