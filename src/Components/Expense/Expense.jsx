@@ -1,12 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { getDatabase, ref, push, onValue, remove, set } from 'firebase/database';
+import { useDispatch, useSelector } from 'react-redux';
+import { setExpenses, addExpense, editExpense, deleteExpense } from '../store/expensesSlice';
+import './Expenses.css';
 
 const Expenses = () => {
-  const [expenses, setExpenses] = useState([]);
   const [moneySpent, setMoneySpent] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('');
   const [editExpenseId, setEditExpenseId] = useState(null);
+  const expenses = useSelector((state) => state.expenses.items);
+  const totalAmount = useSelector((state) => state.expenses.totalAmount);
+  const dispatch = useDispatch();
 
   useEffect(() => {
     const db = getDatabase();
@@ -20,12 +25,13 @@ const Expenses = () => {
           id: key,
           ...data[key]
         }));
-        setExpenses(expensesArray);
+        dispatch(setExpenses(expensesArray));
       }
     });
-  }, []);
+  }, [dispatch]);
 
-  const handleAddExpense = () => {
+  const handleAddExpense = (e) => {
+    e.preventDefault();
     const db = getDatabase();
     const expensesRef = ref(db, 'expenses');
 
@@ -34,6 +40,8 @@ const Expenses = () => {
       moneySpent,
       description,
       category
+    }).then((res) => {
+      dispatch(addExpense({ id: res.key, moneySpent, description, category }));
     });
 
     // Clear input fields
@@ -49,6 +57,7 @@ const Expenses = () => {
     // Remove expense from Firebase
     remove(expenseRef)
       .then(() => {
+        dispatch(deleteExpense(id));
         console.log("Expense successfully deleted");
       })
       .catch((error) => {
@@ -63,7 +72,8 @@ const Expenses = () => {
     setCategory(expense.category);
   };
 
-  const handleSubmitEdit = () => {
+  const handleSubmitEdit = (e) => {
+    e.preventDefault();
     const db = getDatabase();
     const expenseRef = ref(db, `expenses/${editExpenseId}`);
 
@@ -74,6 +84,7 @@ const Expenses = () => {
       category
     })
       .then(() => {
+        dispatch(editExpense({ id: editExpenseId, moneySpent, description, category }));
         setEditExpenseId(null);
         setMoneySpent('');
         setDescription('');
@@ -87,7 +98,7 @@ const Expenses = () => {
   return (
     <div>
       <h1>Expenses</h1>
-      <form onSubmit={handleAddExpense}>
+      <form onSubmit={editExpenseId ? handleSubmitEdit : handleAddExpense}>
         <input
           type="text"
           value={moneySpent}
@@ -106,7 +117,7 @@ const Expenses = () => {
           onChange={(e) => setCategory(e.target.value)}
           placeholder="Category"
         />
-        <button type="submit">Add Expense</button>
+        <button type="submit">{editExpenseId ? 'Update Expense' : 'Add Expense'}</button>
       </form>
       <ul>
         {expenses.map((expense) => (
@@ -117,32 +128,7 @@ const Expenses = () => {
           </li>
         ))}
       </ul>
-      {editExpenseId && (
-        <div>
-          <h2>Edit Expense</h2>
-          <form onSubmit={handleSubmitEdit}>
-            <input
-              type="text"
-              value={moneySpent}
-              onChange={(e) => setMoneySpent(e.target.value)}
-              placeholder="Money Spent"
-            />
-            <input
-              type="text"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Description"
-            />
-            <input
-              type="text"
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              placeholder="Category"
-            />
-            <button type="submit">Submit</button>
-          </form>
-        </div>
-      )}
+      {totalAmount > 10000 && <button className="premium-button">Activate Premium</button>}
     </div>
   );
 };
