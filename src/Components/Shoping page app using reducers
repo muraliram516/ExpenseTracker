@@ -1,0 +1,125 @@
+// store/cartSlice.js
+import { createSlice } from '@reduxjs/toolkit';
+
+const cartSlice = createSlice({
+  name: 'cart',
+  initialState: { visible: false },
+  reducers: {
+    toggleCart(state) {
+      state.visible = !state.visible;
+    }
+  }
+});
+
+export const { toggleCart } = cartSlice.actions;
+export default cartSlice.reducer;
+
+// store/index.js
+import { configureStore } from '@reduxjs/toolkit';
+import authReducer from './authSlice';
+import expensesReducer from './expensesSlice';
+import themeReducer from './themeSlice';
+import cartReducer from './cartSlice';
+
+const store = configureStore({
+  reducer: {
+    auth: authReducer,
+    expenses: expensesReducer,
+    theme: themeReducer,
+    cart: cartReducer,
+  }
+});
+
+export default store;
+
+// components/Cart.js
+import React from 'react';
+import { useSelector } from 'react-redux';
+import './Cart.css';
+
+const Cart = () => {
+  const visible = useSelector((state) => state.cart.visible);
+
+  return (
+    <div className={`cart ${visible ? 'visible' : 'hidden'}`}>
+      <h2>Your Cart</h2>
+      {/* Add cart items here */}
+    </div>
+  );
+};
+
+export default Cart;
+
+// components/ToggleCartButton.js
+import React from 'react';
+import { useDispatch } from 'react-redux';
+import { toggleCart } from '../store/cartSlice';
+
+const ToggleCartButton = () => {
+  const dispatch = useDispatch();
+
+  const handleToggleCart = () => {
+    dispatch(toggleCart());
+  };
+
+  return <button onClick={handleToggleCart}>My Cart</button>;
+};
+
+export default ToggleCartButton;
+
+
+// App.js
+import React from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import LoginForm from './components/LoginForm';
+import Expenses from './components/Expenses';
+import ToggleCartButton from './components/ToggleCartButton';
+import Cart from './components/Cart';
+import { toggleTheme } from './store/themeSlice';
+import './App.css';
+
+const App = () => {
+  const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
+  const darkMode = useSelector((state) => state.theme.darkMode);
+  const dispatch = useDispatch();
+
+  const handleToggleTheme = () => {
+    dispatch(toggleTheme());
+  };
+
+  return (
+    <div className={darkMode ? 'App dark-mode' : 'App'}>
+      <h1>Expense Tracker</h1>
+      <button onClick={handleToggleTheme}>
+        Switch to {darkMode ? 'Light' : 'Dark'} Theme
+      </button>
+      <ToggleCartButton />
+      <Cart />
+      {!isAuthenticated ? (
+        <LoginForm />
+      ) : (
+        <div>
+          <Expenses />
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default App;
+
+
+// index.js
+import React from 'react';
+import ReactDOM from 'react-dom';
+import { Provider } from 'react-redux';
+import App from './App';
+import store from './store';
+import './index.css';
+
+ReactDOM.render(
+  <Provider store={store}>
+    <App />
+  </Provider>,
+  document.getElementById('root')
+);
